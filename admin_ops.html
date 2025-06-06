@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Operations - Game Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; }
+        .container { max-width: 600px; }
+        .section { margin-bottom: 30px; display: none; }
+        .section.active { display: block; }
+        .alert-info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center mb-4">Admin Operations</h2>
+        <p class="text-center">Welcome, {{ session['current_user'] }}!</p>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Dropdown Menu for Operations -->
+        <div class="mb-4">
+            <label for="operationSelect" class="form-label"><h4>Select Operation</h4></label>
+            <select class="form-control" id="operationSelect" onchange="showOperation()">
+                <option value="">-- Select an Operation --</option>
+                <option value="add">Add Game</option>
+                <option value="search">Search Game</option>
+                <option value="range_search">Range Search</option>
+                <option value="update">Update Game</option>
+                <option value="delete">Delete Game</option>
+                <option value="benchmark">Benchmark Workload</option>
+            </select>
+        </div>
+
+        <!-- Add Game Section -->
+        <div class="section" id="add-section">
+            <h4>Add Game</h4>
+            <form method="POST" action="{{ url_for('admin_add_game') }}">
+                <div class="mb-3">
+                    <label for="game_id" class="form-label">Game ID</label>
+                    <input type="text" class="form-control" id="game_id" name="game_id" required>
+                </div>
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Add Game</button>
+            </form>
+        </div>
+
+        <!-- Search Game Section -->
+        <div class="section" id="search-section">
+            <h4>Search Game</h4>
+            <form method="POST" action="{{ url_for('admin_search') }}">
+                <div class="mb-3">
+                    <label for="game_id" class="form-label">Game ID</label>
+                    <input type="text" class="form-control" id="game_id" name="game_id" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </form>
+        </div>
+
+        <!-- Range Search Section -->
+        <div class="section" id="range_search-section">
+            <h4>Range Search</h4>
+            <form method="POST" action="{{ url_for('admin_range_search') }}">
+                <div class="mb-3">
+                    <label for="start_id" class="form-label">Start Game ID</label>
+                    <input type="text" class="form-control" id="start_id" name="start_id" required>
+                </div>
+                <div class="mb-3">
+                    <label for="end_id" class="form-label">End Game ID</label>
+                    <input type="text" class="form-control" id="end_id" name="end_id" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Search Range</button>
+            </form>
+        </div>
+
+        <!-- Update Game Section -->
+        <div class="section" id="update-section">
+            <h4>Update Game</h4>
+            <form method="POST" action="{{ url_for('admin_update_game') }}">
+                <div class="mb-3">
+                    <label for="game_id" class="form-label">Game ID</label>
+                    <input type="text" class="form-control" id="game_id" name="game_id" required>
+                </div>
+                <div class="mb-3">
+                    <label for="new_title" class="form-label">New Title</label>
+                    <input type="text" class="form-control" id="new_title" name="new_title" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Update</button>
+            </form>
+        </div>
+
+        <!-- Delete Game Section -->
+        <div class="section" id="delete-section">
+            <h4>Delete Game</h4>
+            <form method="POST" action="{{ url_for('admin_delete_game') }}">
+                <div class="mb-3">
+                    <label for="game_id" class="form-label">Game ID</label>
+                    <input type="text" class="form-control" id="game_id" name="game_id" required>
+                </div>
+                <button type="submit" class="btn btn-danger w-100">Delete</button>
+            </form>
+        </div>
+
+        <!-- Benchmark Workload Section -->
+        <div class="section" id="benchmark-section">
+            <h4>Benchmark Workload</h4>
+            <form method="POST" action="{{ url_for('admin_benchmark') }}">
+                <div class="mb-3">
+                    <label for="num_queries" class="form-label">Number of Queries</label>
+                    <input type="text" class="form-control" id="num_queries" name="num_queries" required>
+                </div>
+                <div class="mb-3">
+                    <label for="query_type" class="form-label">Query Type</label>
+                    <select class="form-control" id="query_type" name="query_type" required>
+                        <option value="equality">Equality</option>
+                        <option value="range">Range</option>
+                        <option value="mixed">Mixed</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Run Benchmark</button>
+            </form>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function showOperation() {
+            const operation = document.getElementById('operationSelect').value;
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            if (operation) {
+                const section = document.getElementById(`${operation}-section`);
+                if (section) {
+                    section.classList.add('active');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
